@@ -1,0 +1,11 @@
+# compiled binaries
+server
+*.o
+
+# editor files
+.vscode/
+*.swp
+
+# OS junk
+.DS_Store
+
