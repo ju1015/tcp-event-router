@@ -1,4 +1,5 @@
 #include<iostream> //printing messages
+#include "router/EventRouter.h"
 #include<sys/socket.h> //create a socket,attach ip+port,waits for clients,accept client connection
 #include <netinet/in.h> //contains definitions for the internet protocol family. 
 #include <arpa/inet.h> //Helps convert values into network format
@@ -44,7 +45,7 @@ int main() {
 		FD_ZERO(&readfds);
 		FD_SET(serverSocket, &readfds);
 		int maxFd = serverSocket;
-
+		EventRouter router;
 		for (const auto& pair : clients) {
 			int clientFd = pair.first;
 
@@ -97,29 +98,8 @@ int main() {
 				for (const auto& msg : messages) {
 
 					Event event = EventParser::parse(msg);
-
-					switch (event.type) {
-
-						case EventType::CHAT:
-							std::cout << "CHAT: " << event.payload << std::endl;
-
-							for (const auto& pair : clients) {
-								if (pair.second != client) {
-									pair.second->sendText(event.payload);
-								}
-							}
-							break;
-
-						case EventType::LOGIN:
-							client->username = event.payload;
-							client->authenticated = true;
-							client->sendText("Login successful");
-							break;
-
-						default:
-							client->sendText("Unknown command");
-							break;
-					}
+					
+					router.route(*client, event);					
 				}
 			}
 

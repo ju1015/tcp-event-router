@@ -1,6 +1,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
-
+#include <chrono>
 #include <string>
 #include <vector>
 using namespace std;
@@ -35,6 +35,13 @@ class Client {
 		// ---- Future-ready fields (safe to add now) ----
 		std::string username;
 		bool authenticated = false;
+
+		struct RateLimit {
+			int tokens = 10; // max events
+			std::chrono::steady_clock::time_point lastRefill =
+				std::chrono::steady_clock::now();
+		};
+		RateLimit rate;
 };
 
 #endif

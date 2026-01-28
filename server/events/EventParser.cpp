@@ -2,24 +2,29 @@
 
 Event EventParser::parse(const std::string& message) {
 
-    // Find separator
     size_t pos = message.find(':');
+
+    // No TYPE → treat as INFO
     if (pos == std::string::npos) {
-        return Event(EventType::CHAT, message);
+        return Event(EventType::INFO, message);
     }
 
     std::string typeStr = message.substr(0, pos);
     std::string payload = message.substr(pos + 1);
 
-    if (typeStr == "CHAT") {
-        return Event(EventType::CHAT, payload);
+    if (typeStr == "ALERT") {
+        return Event(EventType::ALERT, payload);
     }
-    if (typeStr == "LOGIN") {
-        return Event(EventType::LOGIN, payload);
+    if (typeStr == "METRIC") {
+        return Event(EventType::METRIC, payload);
     }
-    if (typeStr == "LOGOUT") {
-        return Event(EventType::LOGOUT, payload);
+    if (typeStr == "SECURITY") {
+        return Event(EventType::SECURITY, payload);
+    }
+    if (typeStr == "INFO") {
+        return Event(EventType::INFO, payload);
     }
 
-    return Event(EventType::UNKNOWN, payload);
+    // Unknown TYPE → downgrade to INFO
+    return Event(EventType::INFO, message);
 }
