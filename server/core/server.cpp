@@ -3,7 +3,9 @@
 #include <netinet/in.h> //contains definitions for the internet protocol family. 
 #include <arpa/inet.h> //Helps convert values into network format
 #include <unistd.h> //used for systemcalls
-#include <sys/select.h> 
+#include <sys/select.h>
+#include "events/Event.h"
+#include "events/EventParser.h"
 #include <unordered_map>
 #include "Client.h"
 using namespace std;
@@ -92,15 +94,31 @@ int main() {
 				}
 
 				auto messages = client->popMessages();
-
 				for (const auto& msg : messages) {
-					cout << "Client says: " << msg << endl;
 
-					// broadcast
-					for (const auto& pair : clients) {
-						if (pair.second != client) {
-							pair.second->sendText(msg);
-						}
+					Event event = EventParser::parse(msg);
+
+					switch (event.type) {
+
+						case EventType::CHAT:
+							std::cout << "CHAT: " << event.payload << std::endl;
+
+							for (const auto& pair : clients) {
+								if (pair.second != client) {
+									pair.second->sendText(event.payload);
+								}
+							}
+							break;
+
+						case EventType::LOGIN:
+							client->username = event.payload;
+							client->authenticated = true;
+							client->sendText("Login successful");
+							break;
+
+						default:
+							client->sendText("Unknown command");
+							break;
 					}
 				}
 			}
