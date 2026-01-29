@@ -2,6 +2,12 @@
 
 Event EventParser::parse(const std::string& message) {
 
+
+    if (message.rfind("AUTH ", 0) == 0) {
+        std::string key = message.substr(5);
+        return Event(EventType::AUTH, key);
+    }
+
     size_t pos = message.find(':');
 
     // No TYPE → treat as INFO

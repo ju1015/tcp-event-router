@@ -11,7 +11,8 @@ enum class EventType {
 	ALERT,      // something is wrong
 	METRIC,     // numeric/system data
 	SECURITY,   // auth, intrusion, violations
-	INFO
+	INFO,
+	AUTH
 };
 
 struct Event {

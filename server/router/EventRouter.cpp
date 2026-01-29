@@ -4,6 +4,24 @@
 #include "../policies/RateLimiter.h"
 
 void EventRouter::route(Client& client, const Event& event) {
+
+	// 🔐 Handle authentication event
+	if (event.type == EventType::AUTH) {
+		if (event.payload == "my_gateway_key_123") {
+			client.authenticate();
+			client.sendText("AUTH_OK");
+		} else {
+			client.sendText("AUTH_FAIL");
+			client.closeConnection();
+		}
+		return;
+	}
+
+	// 🔒 Block unauthenticated clients
+	if (!client.isAuthenticated()) {
+		client.sendText("ERROR: not authenticated");
+		return;
+	}
 	// 🔒 Rate limiting check
 	if (!RateLimiter::allow(client)) {
 		client.sendText("ERROR: rate limit exceeded");

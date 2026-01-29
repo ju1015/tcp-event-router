@@ -13,7 +13,11 @@ public:
 private:
     std::string baseDirectory;
 
+    static constexpr std::size_t MAX_LOG_SIZE = 1024 * 1024; // 1MB
+    static constexpr int MAX_BACKUPS = 3;
+
     std::string getFileName(EventType type) const;
+    void rotateIfNeeded(const std::string& filename);
 };
 
 #endif

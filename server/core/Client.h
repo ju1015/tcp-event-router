@@ -9,6 +9,8 @@ class Client {
 	private:
 		int socketFd;
 		std::string recvBuffer;
+		bool authenticated = false;
+		std::string identity;
 
 	public:
 		explicit Client(int fd);
@@ -16,10 +18,6 @@ class Client {
 
 		int getFd() const;
 
-		// Buffer management
-		/*void appendToBuffer(const char* data, size_t len);
-		  string& getBuffer();
-		  void clearBuffer();*/
 
 		// Networking
 		bool receiveData();                 // calls recv()
@@ -32,9 +30,12 @@ class Client {
 		// Connection management
 		void closeConnection();
 
+		bool isAuthenticated() const;
+
+		void authenticate();
+
 		// ---- Future-ready fields (safe to add now) ----
 		std::string username;
-		bool authenticated = false;
 
 		struct RateLimit {
 			int tokens = 10; // max events

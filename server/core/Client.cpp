@@ -80,3 +80,11 @@ void Client::closeConnection() {
     }
 }
 
+bool Client::isAuthenticated() const {
+    return authenticated;
+}
+
+void Client::authenticate() {
+    authenticated = true;
+}
+
