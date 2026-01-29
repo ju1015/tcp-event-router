@@ -1,0 +1,280 @@
+# TCP Chat Server with Generic Event Gateway
+
+This project is a **C++ TCP-based chat server** designed with a **modular, event-driven architecture**. The long-term goal is to evolve it into a **generic gateway / event router** that can sit between clients and services, enforce policies, parse events, and route them cleanly.
+
+The design focuses on **clean separation of concerns**, **extensibility**, and **learning real backend/networking concepts** (similar to how real-world gateways like API gateways, message brokers, or load balancers work).
+
+---
+
+## High-Level Architecture
+
+```
+Client (TCP)
+   ↓
+Core Server (accepts connections)
+   ↓
+Client Buffer
+   ↓
+EventParser (raw → Event)
+   ↓
+Policies (rate limit, auth, etc.)
+   ↓
+EventRouter (decides destination)
+   ↓
+Adapters / Gateway / Logs
+```
+
+---
+
+## Project Structure
+
+```
+.
+├── adapters
+│   ├── FileAdapter.cpp
+│   └── FileAdapter.h
+│
+├── core
+│   ├── Client.cpp
+│   ├── Client.h
+│   ├── server.cpp
+│   └── server
+│
+├── events
+│   ├── Event.h
+│   ├── EventParser.cpp
+│   └── EventParser.h
+│
+├── gateway
+│   └── (future gateway logic)
+│
+├── logs
+│   ├── alerts.log
+│   ├── info.log
+│   └── metrics.log
+│
+├── policies
+│   ├── RateLimiter.cpp
+│   └── RateLimiter.h
+│
+└── router
+    ├── EventRouter.cpp
+    └── EventRouter.h
+```
+
+---
+
+## Folder & Component Explanation
+
+### 1. `core/`
+
+**Purpose:** Low-level TCP networking and client management.
+
+* `server.cpp`
+
+  * Creates socket
+  * Binds IP + port
+  * Listens for connections
+  * Accepts clients
+  * Reads incoming data
+
+* `Client.h / Client.cpp`
+
+  * Represents a connected client
+  * Stores:
+
+    * Socket FD
+    * Receive buffer
+  * Responsible for:
+
+    * Buffering incoming data
+    * Closing connections cleanly
+
+This layer **does NOT care about business logic**.
+
+---
+
+### 2. `events/`
+
+**Purpose:** Convert raw TCP data into structured events.
+
+* `Event.h`
+
+  * Defines a generic `Event`
+  * Example fields:
+
+    * type
+    * payload
+    * timestamp
+    * source client
+
+* `EventParser.h / EventParser.cpp`
+
+  * Takes raw strings from client buffers
+  * Parses them into `Event` objects
+
+This decouples **protocol format** from the server.
+
+---
+
+### 3. `router/`
+
+**Purpose:** Central brain of the system.
+
+* `EventRouter.h / EventRouter.cpp`
+
+  * Receives parsed `Event`
+  * Decides what to do with it:
+
+    * Broadcast
+    * Send to specific client
+    * Log it
+    * Forward to adapter
+
+Think of this as a **message dispatcher**.
+
+---
+
+### 4. `policies/`
+
+**Purpose:** Enforce rules before routing events.
+
+* `RateLimiter.h / RateLimiter.cpp`
+
+  * Limits events per client
+  * Prevents spam / abuse
+
+Future policies can include:
+
+* Authentication
+* Authorization
+* IP filtering
+* Payload validation
+
+Policies run **before** routing.
+
+---
+
+### 5. `adapters/`
+
+**Purpose:** Output / integration layer.
+
+* `FileAdapter.h / FileAdapter.cpp`
+
+  * Writes events to files
+  * Used for logging or persistence
+
+In the future, adapters can send events to:
+
+* Databases
+* HTTP APIs
+* Message queues (Kafka-like)
+* Other TCP services
+
+---
+
+### 6. `gateway/`
+
+**Purpose:** Future expansion layer.
+
+This folder is reserved for building a **generic gateway**, similar to:
+
+* API Gateway
+* Message Broker
+* Event Bus
+
+Possible features:
+
+* Protocol translation
+* Service discovery
+* Load balancing
+* Authentication middleware
+
+---
+
+### 7. `logs/`
+
+**Purpose:** Runtime observability.
+
+* `info.log` – normal server events
+* `alerts.log` – warnings, errors, security issues
+* `metrics.log` – throughput, connections, rate limits
+
+---
+
+## Build Instructions
+
+From the project root:
+
+```bash
+g++ -std=c++17 -Wall -Wextra \
+core/server.cpp \
+core/Client.cpp \
+events/EventParser.cpp \
+router/EventRouter.cpp \
+policies/RateLimiter.cpp \
+adapters/FileAdapter.cpp \
+-o server
+```
+
+Run the server:
+
+```bash
+./server
+```
+
+---
+
+## Testing
+
+Use `netcat` or `nc` as a client:
+
+```bash
+nc 127.0.0.1 8080
+```
+
+Send messages and observe:
+
+* Server output
+* Logs inside `logs/`
+
+---
+
+## Design Goals
+
+* Event-driven architecture
+* Loose coupling between layers
+* Easy extensibility
+* Clean separation of networking vs logic
+* Foundation for real-world gateway systems
+
+---
+
+## Future Roadmap
+
+* [ ] JSON-based event format
+* [ ] Authentication policy
+* [ ] Multiple adapters (DB, HTTP)
+* [ ] Plugin-based routing
+* [ ] Gateway-level configuration
+* [ ] Metrics exporter
+
+---
+
+## Learning Outcomes
+
+This project helps you understand:
+
+* TCP sockets in C++
+* Event-driven backend design
+* Gateway & router architecture
+* Policy enforcement patterns
+* Real-world server structuring
+
+---
+
+## Author
+
+**Rupayan Sarkar**
+
+Built for learning low-level networking and backend system design.
